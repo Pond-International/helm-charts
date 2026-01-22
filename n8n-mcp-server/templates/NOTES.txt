@@ -1,0 +1,117 @@
+🎉 n8n-MCP has been deployed!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 DEPLOYMENT INFO
+
+  Release Name: {{ .Release.Name }}
+  Namespace:    {{ .Release.Namespace }}
+  MCP Mode:     {{ .Values.mcp.mode }}
+  {{- if .Values.n8n.enabled }}
+  n8n URL:      {{ .Values.n8n.apiUrl }}
+  {{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 AVAILABLE TOOLS
+
+  Core Tools (Always Available):
+  ├── tools_documentation  - MCP tool documentation
+  ├── search_nodes         - Search 1,084 n8n nodes
+  ├── get_node             - Get node info/docs/properties
+  ├── validate_node        - Validate node configurations
+  ├── validate_workflow    - Validate workflows
+  ├── search_templates     - Search 2,709 templates
+  └── get_template         - Get workflow JSON
+
+  {{- if .Values.n8n.enabled }}
+  n8n Management Tools (Enabled):
+  ├── n8n_create_workflow      - Create workflows
+  ├── n8n_get_workflow         - Get workflow details
+  ├── n8n_update_*_workflow    - Update workflows
+  ├── n8n_delete_workflow      - Delete workflows
+  ├── n8n_list_workflows       - List workflows
+  ├── n8n_validate_workflow    - Validate by ID
+  ├── n8n_autofix_workflow     - Auto-fix errors
+  ├── n8n_test_workflow        - Test execution
+  ├── n8n_executions           - Manage executions
+  └── n8n_health_check         - Check connectivity
+  {{- else }}
+  n8n Management Tools: DISABLED
+  └── To enable: set n8n.enabled=true with apiUrl and apiKey
+  {{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔗 ACCESS THE SERVICE
+
+{{- if .Values.ingress.enabled }}
+
+  External URL: http{{ if .Values.ingress.tls }}s{{ end }}://{{ (index .Values.ingress.hosts 0).host }}
+
+{{- else if contains "NodePort" .Values.service.type }}
+
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "n8n-mcp-server.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "http://$NODE_IP:$NODE_PORT"
+
+{{- else if contains "LoadBalancer" .Values.service.type }}
+
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "n8n-mcp-server.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "http://$SERVICE_IP:{{ .Values.service.port }}"
+
+{{- else if contains "ClusterIP" .Values.service.type }}
+
+  # Port forward to access locally:
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "n8n-mcp-server.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+
+  # Then access: http://localhost:{{ .Values.service.port }}
+
+{{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💻 CLAUDE DESKTOP CONFIGURATION
+
+  Add to your Claude Desktop config:
+
+  {
+    "mcpServers": {
+      "n8n-mcp": {
+        {{- if .Values.ingress.enabled }}
+        "url": "http{{ if .Values.ingress.tls }}s{{ end }}://{{ (index .Values.ingress.hosts 0).host }}",
+        {{- else }}
+        "url": "http://YOUR_ENDPOINT:{{ .Values.service.port }}",
+        {{- end }}
+        "headers": {
+          "Authorization": "Bearer YOUR_AUTH_TOKEN"
+        }
+      }
+    }
+  }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ VERIFY DEPLOYMENT
+
+  # Check pod status
+  kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "n8n-mcp-server.name" . }},app.kubernetes.io/instance={{ .Release.Name }}"
+
+  # View logs
+  kubectl logs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "n8n-mcp-server.name" . }},app.kubernetes.io/instance={{ .Release.Name }}"
+
+  # Health check (HTTP mode)
+  {{- if eq .Values.mcp.mode "http" }}
+  kubectl exec --namespace {{ .Release.Namespace }} -it $(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "n8n-mcp-server.name" . }}" -o jsonpath="{.items[0].metadata.name}") -- curl -s http://localhost:{{ .Values.mcp.port }}/health
+  {{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOCUMENTATION
+
+  - n8n-MCP: https://github.com/czlonkowski/n8n-mcp
+  - MCP Protocol: https://modelcontextprotocol.io
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

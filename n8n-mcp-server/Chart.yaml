@@ -1,0 +1,44 @@
+apiVersion: v2
+name: n8n-mcp
+description: |
+  A Helm chart for deploying n8n-MCP - a Model Context Protocol server that provides
+  AI assistants with comprehensive access to n8n node documentation, properties, and operations.
+
+  Features:
+  - 1,084 n8n nodes (537 core + 547 community)
+  - 2,709 workflow templates
+  - Real-world configuration examples
+  - Complete validation system
+
+  Based on: https://github.com/czlonkowski/n8n-mcp
+
+type: application
+
+# Chart version - increment this when you make changes to the chart
+version: 0.2.0
+
+# App version - matches the upstream n8n-mcp version
+appVersion: "latest"
+
+home: https://github.com/czlonkowski/n8n-mcp
+
+sources:
+  - https://github.com/czlonkowski/n8n-mcp
+
+maintainers:
+  - name: Your Team
+    email: team@example.com
+
+keywords:
+  - n8n
+  - mcp
+  - model-context-protocol
+  - ai
+  - claude
+  - workflow
+  - automation
+  - documentation
+
+annotations:
+  category: AI/Automation
+  artifacthub.io/license: MIT

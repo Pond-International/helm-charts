@@ -1,0 +1,7 @@
+# Claude AI ignore patterns
+.claude/
+*.log
+.env
+.env.local
+secrets/
+credentials/

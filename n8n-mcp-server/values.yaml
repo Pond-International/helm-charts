@@ -1,0 +1,233 @@
+# Default values for n8n-mcp
+# Based on: https://github.com/czlonkowski/n8n-mcp
+
+# -- Number of replicas (usually 1 is enough for MCP server)
+replicaCount: 1
+
+image:
+  # -- Docker image repository (official image from czlonkowski/n8n-mcp)
+  repository: ghcr.io/czlonkowski/n8n-mcp
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Overrides the image tag (default is "latest")
+  tag: "latest"
+
+# -- Image pull secrets for private registries
+imagePullSecrets: []
+
+# -- Override the name of the chart
+nameOverride: ""
+
+# -- Override the full name of the chart
+fullnameOverride: ""
+
+# =============================================================================
+# MCP Server Mode Configuration
+# =============================================================================
+mcp:
+  # -- MCP mode: "stdio" for Claude Desktop, "http" for remote access
+  # Use "http" when deploying to Kubernetes/Qovery for remote connections
+  mode: "http"
+
+  # -- Log level: error, warn, info, debug
+  logLevel: "error"
+
+  # -- Disable console output (recommended for stdio mode)
+  disableConsoleOutput: true
+
+  # -- HTTP server port (only used when mode is "http")
+  port: 3000
+
+  # -- Authentication token for HTTP mode (REQUIRED for production!)
+  # Generate with: openssl rand -hex 32
+  authToken: ""
+
+  # -- Use existing secret for auth token
+  # Secret must contain key: MCP_AUTH_TOKEN
+  existingAuthSecret: ""
+
+# =============================================================================
+# n8n Integration (Optional - enables workflow management tools)
+# =============================================================================
+n8n:
+  # -- Enable n8n integration (adds 13 workflow management tools)
+  enabled: false
+
+  # -- Full URL of the n8n API (e.g., "https://your-n8n.example.com")
+  # Note: Do NOT include /api/v1 - the server adds it automatically
+  apiUrl: ""
+
+  # -- API key for authenticating with n8n
+  # Generate from: n8n Settings > API > API Keys
+  apiKey: ""
+
+  # -- Use existing secret for n8n credentials
+  # Secret must contain keys: N8N_API_URL, N8N_API_KEY
+  existingSecret: ""
+
+  # Webhook configuration (optional)
+  webhook:
+    # -- Security mode for webhooks: strict, moderate, permissive
+    # Use "moderate" for local n8n instances
+    securityMode: "strict"
+
+# =============================================================================
+# Telemetry Configuration
+# =============================================================================
+telemetry:
+  # -- Disable anonymous telemetry (privacy-focused)
+  disabled: false
+
+# =============================================================================
+# Database Configuration
+# =============================================================================
+database:
+  # -- SQLite save interval in milliseconds (for sql.js adapter)
+  # Lower = more frequent saves, Higher = less memory churn
+  saveIntervalMs: 5000
+
+# =============================================================================
+# Service Account
+# =============================================================================
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use
+  name: ""
+
+# =============================================================================
+# Pod Configuration
+# =============================================================================
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext:
+  # -- Run as non-root user
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  readOnlyRootFilesystem: false  # n8n-mcp needs to write to SQLite
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Service Configuration
+# =============================================================================
+service:
+  # -- Service type
+  type: ClusterIP
+  # -- Service port
+  port: 3000
+
+# =============================================================================
+# Ingress Configuration (Optional)
+# =============================================================================
+ingress:
+  # -- Enable ingress
+  enabled: false
+  # -- Ingress class name
+  className: ""
+  # -- Ingress annotations
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  hosts:
+    - host: n8n-mcp.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: n8n-mcp-tls
+  #    hosts:
+  #      - n8n-mcp.local
+
+# =============================================================================
+# Resource Limits
+# =============================================================================
+resources:
+  # n8n-mcp is optimized - ~280MB image, ~100-200MB runtime memory
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# =============================================================================
+# Autoscaling (usually not needed for MCP server)
+# =============================================================================
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# =============================================================================
+# Node Selection
+# =============================================================================
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# =============================================================================
+# Health Checks
+# =============================================================================
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# =============================================================================
+# Extra Environment Variables
+# =============================================================================
+# -- Additional environment variables to set
+extraEnv: []
+  # - name: EXTRA_VAR
+  #   value: "extra-value"
+
+# -- Additional environment variables from secrets/configmaps
+extraEnvFrom: []
+  # - secretRef:
+  #     name: my-secret
+  # - configMapRef:
+  #     name: my-configmap
+
+# =============================================================================
+# Persistence (Optional - for caching)
+# =============================================================================
+persistence:
+  # -- Enable persistence for SQLite database
+  enabled: false
+  # -- Storage class (leave empty for default)
+  storageClass: ""
+  # -- Access mode
+  accessMode: ReadWriteOnce
+  # -- Storage size
+  size: 1Gi
+  # -- Annotations for PVC
+  annotations: {}

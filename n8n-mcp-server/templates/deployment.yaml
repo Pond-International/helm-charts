@@ -1,0 +1,177 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "n8n-mcp-server.fullname" . }}
+  labels:
+    {{- include "n8n-mcp-server.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "n8n-mcp-server.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "n8n-mcp-server.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "n8n-mcp-server.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.mcp.port }}
+              protocol: TCP
+          env:
+            # ===================
+            # MCP Server Configuration
+            # ===================
+            - name: MCP_MODE
+              value: {{ .Values.mcp.mode | quote }}
+
+            - name: LOG_LEVEL
+              value: {{ .Values.mcp.logLevel | quote }}
+
+            {{- if .Values.mcp.disableConsoleOutput }}
+            - name: DISABLE_CONSOLE_OUTPUT
+              value: "true"
+            {{- end }}
+
+            {{- if eq .Values.mcp.mode "http" }}
+            - name: PORT
+              value: {{ .Values.mcp.port | quote }}
+            {{- end }}
+
+            # Auth token for HTTP mode
+            {{- if or .Values.mcp.authToken .Values.mcp.existingAuthSecret }}
+            - name: MCP_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "n8n-mcp-server.secretName" . }}
+                  key: MCP_AUTH_TOKEN
+            {{- end }}
+
+            # ===================
+            # n8n Integration (Optional)
+            # ===================
+            {{- if .Values.n8n.enabled }}
+            {{- if or .Values.n8n.apiUrl .Values.n8n.existingSecret }}
+            - name: N8N_API_URL
+              {{- if .Values.n8n.existingSecret }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.n8n.existingSecret }}
+                  key: N8N_API_URL
+              {{- else }}
+              value: {{ .Values.n8n.apiUrl | quote }}
+              {{- end }}
+            {{- end }}
+
+            {{- if or .Values.n8n.apiKey .Values.n8n.existingSecret }}
+            - name: N8N_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.n8n.existingSecret }}{{ .Values.n8n.existingSecret }}{{ else }}{{ include "n8n-mcp-server.secretName" . }}{{ end }}
+                  key: N8N_API_KEY
+            {{- end }}
+
+            {{- if .Values.n8n.webhook.securityMode }}
+            - name: WEBHOOK_SECURITY_MODE
+              value: {{ .Values.n8n.webhook.securityMode | quote }}
+            {{- end }}
+            {{- end }}
+
+            # ===================
+            # Telemetry Configuration
+            # ===================
+            {{- if .Values.telemetry.disabled }}
+            - name: N8N_MCP_TELEMETRY_DISABLED
+              value: "true"
+            {{- end }}
+
+            # ===================
+            # Database Configuration
+            # ===================
+            {{- if .Values.database.saveIntervalMs }}
+            - name: SQLJS_SAVE_INTERVAL_MS
+              value: {{ .Values.database.saveIntervalMs | quote }}
+            {{- end }}
+
+            # ===================
+            # Extra Environment Variables
+            # ===================
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- if and .Values.livenessProbe.enabled (eq .Values.mcp.mode "http") }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          {{- end }}
+
+          {{- if and .Values.readinessProbe.enabled (eq .Values.mcp.mode "http") }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          {{- end }}
+
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          {{- end }}
+
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "n8n-mcp-server.fullname" . }}-data
+      {{- end }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
