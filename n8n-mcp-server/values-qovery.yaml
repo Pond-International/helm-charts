@@ -1,0 +1,36 @@
+# n8n MCP Server Values Override for Qovery
+# Usage: n8n-mcp-server/values-qovery.yaml
+
+replicaCount: 1
+
+image:
+  repository: czhong/n8n-mcp-server
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  hosts:
+    - host: n8n-mcp.${QOVERY_APPLICATION_ENDPOINT}
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
