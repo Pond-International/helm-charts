@@ -1,31 +1,36 @@
 apiVersion: v1
 entries:
   n8n-mcp-server:
-    - apiVersion: v2
-      appVersion: latest
-      created: "2025-01-22T21:30:00.000Z"
-      description: |
-        A Helm chart for deploying n8n-MCP - a Model Context Protocol server that provides
-        AI assistants with comprehensive access to n8n node documentation, properties, and operations.
-      digest: ""
-      home: https://github.com/czlonkowski/n8n-mcp
-      keywords:
-        - n8n
-        - mcp
-        - model-context-protocol
-        - ai
-        - claude
-        - workflow
-        - automation
-        - documentation
-      maintainers:
-        - email: team@pond-international.com
-          name: Pond International
-      name: n8n-mcp-server
-      sources:
-        - https://github.com/czlonkowski/n8n-mcp
-      type: application
-      urls:
-        - https://pond-international.github.io/helm-charts/n8n-mcp-server-0.2.0.tgz
-      version: 0.2.0
-generated: "2025-01-22T21:30:00.000Z"
+  - annotations:
+      artifacthub.io/license: MIT
+      category: AI/Automation
+    apiVersion: v2
+    appVersion: latest
+    created: "2026-01-22T23:00:12.594004+08:00"
+    description: 'A Helm chart for deploying n8n-MCP - a Model Context Protocol server
+      that provides AI assistants with comprehensive access to n8n node documentation,
+      properties, and operations.  Features: - 1,084 n8n nodes (537 core + 547 community)
+      - 2,709 workflow templates - Real-world configuration examples - Complete validation
+      system  Based on: https://github.com/czlonkowski/n8n-mcp '
+    digest: def5fa426bc4120eea7d3a5d21a70eda372103778badf137b38d219651e44dfe
+    home: https://github.com/czlonkowski/n8n-mcp
+    keywords:
+    - n8n
+    - mcp
+    - model-context-protocol
+    - ai
+    - claude
+    - workflow
+    - automation
+    - documentation
+    maintainers:
+    - email: c0@ceiling-cryptopond.com
+      name: ceiling-cryptopond
+    name: n8n-mcp-server
+    sources:
+    - https://github.com/czlonkowski/n8n-mcp
+    type: application
+    urls:
+    - https://ceiling-cryptopond.github.io/helm-charts/n8n-mcp-server-0.2.0.tgz
+    version: 0.2.0
+generated: "2026-01-22T23:00:12.593459+08:00"

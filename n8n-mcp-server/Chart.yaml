@@ -1,5 +1,5 @@
 apiVersion: v2
-name: n8n-mcp
+name: n8n-mcp-server
 description: |
   A Helm chart for deploying n8n-MCP - a Model Context Protocol server that provides
   AI assistants with comprehensive access to n8n node documentation, properties, and operations.
