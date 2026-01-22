@@ -1,6 +1,6 @@
-# Helm Charts by Pond International
+# Helm Charts by ceiling-cryptopond
 
-This repository contains Helm charts for Pond International's infrastructure.
+This repository contains Helm charts for AI automation infrastructure.
 
 ## Available Charts
 
@@ -11,8 +11,8 @@ This repository contains Helm charts for Pond International's infrastructure.
 Add this repository to Helm:
 
 ```bash
-helm repo add pond-international https:// Pond-International.github.io/helm-charts
-helm install my-release pond-international/<chart-name>
+helm repo add ceiling-cryptopond https://ceiling-cryptopond.github.io/helm-charts
+helm install my-release ceiling-cryptopond/n8n-mcp-server
 ```
 
 ## Development
