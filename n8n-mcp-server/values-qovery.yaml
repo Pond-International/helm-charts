@@ -27,7 +27,7 @@ ingress:
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
   hosts:
-    - host: n8n-mcp.${QOVERY_APPLICATION_ENDPOINT}
+    - host: n8n-mcp.pond-international.com
       paths:
         - path: /
           pathType: Prefix
