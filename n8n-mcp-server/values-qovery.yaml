@@ -4,7 +4,7 @@
 replicaCount: 1
 
 image:
-  repository: czhong/n8n-mcp-server
+  repository: ghcr.io/czlonkowski/n8n-mcp
   tag: "latest"
   pullPolicy: IfNotPresent
 
