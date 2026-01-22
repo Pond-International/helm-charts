@@ -8,6 +8,14 @@ image:
   tag: "latest"
   pullPolicy: IfNotPresent
 
+mcp:
+  # MCP mode: "stdio" for Claude Desktop, "http" for remote access
+  mode: "http"
+  port: 8080
+  # Authentication token for HTTP mode (REQUIRED for production!)
+  # Generate with: openssl rand -hex 32
+  authToken: ""
+
 service:
   type: ClusterIP
   port: 8080
