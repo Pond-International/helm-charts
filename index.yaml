@@ -6,7 +6,7 @@ entries:
       category: AI/Automation
     apiVersion: v2
     appVersion: latest
-    created: "2026-01-22T16:01:55.634314636Z"
+    created: "2026-01-22T16:15:22.35785998Z"
     description: 'A Helm chart for deploying n8n-MCP - a Model Context Protocol server
       that provides AI assistants with comprehensive access to n8n node documentation,
       properties, and operations.  Features: - 1,084 n8n nodes (537 core + 547 community)
@@ -33,4 +33,4 @@ entries:
     urls:
     - https://ceiling-cryptopond.github.io/helm-charts/n8n-mcp-server-0.2.0.tgz
     version: 0.2.0
-generated: "2026-01-22T16:01:55.633409334Z"
+generated: "2026-01-22T16:15:22.356969919Z"
