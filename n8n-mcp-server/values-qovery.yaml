@@ -1,5 +1,5 @@
 # n8n MCP Server Values Override for Qovery
-# Usage: n8n-mcp-server/values-qovery.yaml
+# This file contains production-ready configuration for Qovery deployment
 
 replicaCount: 1
 
