@@ -13,11 +13,10 @@ spec:
       {{- include "n8n-mcp-server.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
       annotations:
-        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
-        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-        {{- end }}
+      {{- end }}
       labels:
         {{- include "n8n-mcp-server.selectorLabels" . | nindent 8 }}
     spec:
@@ -39,9 +38,7 @@ spec:
               containerPort: {{ .Values.mcp.port }}
               protocol: TCP
           env:
-            # ===================
             # MCP Server Configuration
-            # ===================
             - name: MCP_MODE
               value: {{ .Values.mcp.mode | quote }}
 
@@ -59,17 +56,21 @@ spec:
             {{- end }}
 
             # Auth token for HTTP mode
-            {{- if or .Values.mcp.authToken .Values.mcp.existingAuthSecret }}
+            {{- if and .Values.mcp.authToken (not .Values.mcp.existingAuthSecret) }}
             - name: MCP_AUTH_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "n8n-mcp-server.secretName" . }}
+                  name: {{ include "n8n-mcp-server.fullname" . }}-credentials
+                  key: MCP_AUTH_TOKEN
+            {{- else if .Values.mcp.existingAuthSecret }}
+            - name: MCP_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mcp.existingAuthSecret }}
                   key: MCP_AUTH_TOKEN
             {{- end }}
 
-            # ===================
             # n8n Integration (Optional)
-            # ===================
             {{- if .Values.n8n.enabled }}
             {{- if or .Values.n8n.apiUrl .Values.n8n.existingSecret }}
             - name: N8N_API_URL
@@ -87,7 +88,7 @@ spec:
             - name: N8N_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ if .Values.n8n.existingSecret }}{{ .Values.n8n.existingSecret }}{{ else }}{{ include "n8n-mcp-server.secretName" . }}{{ end }}
+                  name: {{ if .Values.n8n.existingSecret }}{{ .Values.n8n.existingSecret }}{{ else }}{{ include "n8n-mcp-server.fullname" . }}-credentials{{ end }}
                   key: N8N_API_KEY
             {{- end }}
 
@@ -97,25 +98,19 @@ spec:
             {{- end }}
             {{- end }}
 
-            # ===================
             # Telemetry Configuration
-            # ===================
             {{- if .Values.telemetry.disabled }}
             - name: N8N_MCP_TELEMETRY_DISABLED
               value: "true"
             {{- end }}
 
-            # ===================
             # Database Configuration
-            # ===================
             {{- if .Values.database.saveIntervalMs }}
             - name: SQLJS_SAVE_INTERVAL_MS
               value: {{ .Values.database.saveIntervalMs | quote }}
             {{- end }}
 
-            # ===================
             # Extra Environment Variables
-            # ===================
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
